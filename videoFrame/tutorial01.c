@@ -102,12 +102,12 @@ int main(int argc, char *argv[]) {
 
 	// Dump information about file onto standard error.
 	av_dump_format(pFormatCtx, 0, argv[1], 0);
-
 	// Find the first video stream.
 	videoStream = -1;
 	for (i = 0; i < pFormatCtx->nb_streams; i++) {
 		if(pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
 			videoStream = i;
+			// printf("i am video stream\n");
 			break;
 		}
 	}
@@ -173,12 +173,17 @@ int main(int argc, char *argv[]) {
 		avcodec_flush_buffers(pCodecCtx);
 	int diff = 2000;
 	i = 0;
-	while (av_read_frame(pFormatCtx, &packet) >= 0) {
+	while (1) {
 		// Is this a packet from the video stream?
+		int refer = av_read_frame(pFormatCtx, &packet);
+		if(refer  == AVERROR_EOF){
+			printf("i am wrong");
+		}
+		printf("in while stream%d\n", packet.size);
 		if (packet.stream_index == videoStream) {
 			// Decode video frame
 			avcodec_decode_video2(pCodecCtx, pFrame, &frameFinished, &packet);
-
+			printf("in if videostream\n");
 			// Did we get a video frame?
 			if (frameFinished) {
 				printf("packet pts, %d, %d\n", packet.pts, seek_target - packet.pts);

@@ -114,10 +114,10 @@ Module['locateFile'] = function(path, prefix) {
     // otherwise, use the default, the prefix (JS file's dir) + the path
         console.log('path'+ path + '\n')
       return prefix + path;
-};
-Module.onRuntimeInitialized = function () {
-    seek_video_to = Module.cwrap('seekseek', 'number', ['string', 'number']);
-};
+  };
+  Module.onRuntimeInitialized = function () {
+    seek_video_to = Module.cwrap('makeGIF', 'number', ['string', 'string']);
+  };
 
   
 

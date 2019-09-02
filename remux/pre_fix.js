@@ -1,7 +1,7 @@
 var __ffmpegjs_utf8ToStr;
 var __ffmpegjs_opts = {};
 var __ffmpegjs_return = false;
-var seek_video_to = null;
+var muxmux = null;
 var isFSbuild = false ;
 var mountpoint = undefined ;    // all the mountpoint should be the same in imagination
 
@@ -98,7 +98,7 @@ function __ffmpegjs(__ffmpegjs_opts1) {
     // 挂载文件到fs
     __preRun();
     // 执行exported function
-    seek_video_to(__ffmpegjs_opts["arguments"][0], __ffmpegjs_opts["arguments"][1]);
+    muxmux(__ffmpegjs_opts["arguments"][0], __ffmpegjs_opts["arguments"][1]);
     // 取文件返回
     __postRun();
     // Object.keys(__ffmpegjs_opts).forEach(function(key) {
@@ -114,10 +114,10 @@ Module['locateFile'] = function(path, prefix) {
     // otherwise, use the default, the prefix (JS file's dir) + the path
         console.log('path'+ path + '\n')
       return prefix + path;
-};
-Module.onRuntimeInitialized = function () {
-    seek_video_to = Module.cwrap('seekseek', 'number', ['string', 'number']);
-};
+  };
+  Module.onRuntimeInitialized = function () {
+    muxmux = Module.cwrap('muxmux', 'number', ['string', 'string']);
+  };
 
   
 

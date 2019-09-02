@@ -28,9 +28,9 @@
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
 #include <libavutil/imgutils.h>
-
+#include <jpeglib.h>
 #include <stdio.h>
-#include<math.h>
+#include <math.h>
 
 // compatibility with newer API
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,28,1)
@@ -39,13 +39,64 @@
 #endif
 
 void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame) ;
-
-
+void saveFrame_jpg(uint8_t *pRGBBuffer, int iFrame, int width, int height); 
 int main () {
     av_register_all();
     fprintf(stdout, "ffmpeg init done\n");
     return 0;
 }
+
+void saveFrame_jpg(uint8_t *pRGBBuffer, int iFrame, int width, int height)  {  
+  
+    struct jpeg_compress_struct cinfo;  
+  
+    struct jpeg_error_mgr jerr;  
+  
+    char szFilename[1024];  
+    int row_stride;  
+  
+    FILE *fp;  
+  
+    JSAMPROW row_pointer[1];   // 一行位图  
+  
+    cinfo.err = jpeg_std_error(&jerr);  
+  
+    jpeg_create_compress(&cinfo);  
+  
+      
+    sprintf(szFilename, "result%d.jpg", iFrame);//图片名字为视频名+号码  
+    fp = fopen(szFilename, "wb");  
+      
+    if(fp == NULL)  
+            return;  
+  
+    jpeg_stdio_dest(&cinfo, fp);  
+  
+    cinfo.image_width = width;    // 为图的宽和高，单位为像素   
+    cinfo.image_height = height;  
+    cinfo.input_components = 3;   // 在此为1,表示灰度图， 如果是彩色位图，则为3   
+    cinfo.in_color_space = JCS_RGB; //JCS_GRAYSCALE表示灰度图，JCS_RGB表示彩色图像  
+  
+    jpeg_set_defaults(&cinfo);   
+    jpeg_set_quality (&cinfo, 80, 1);  
+  
+    jpeg_start_compress(&cinfo, TRUE);  
+  
+      
+    row_stride = cinfo.image_width * 3;//每一行的字节数,如果不是索引图,此处需要乘以3  
+  
+    // 对每一行进行压缩  
+    while (cinfo.next_scanline < cinfo.image_height) {  
+        row_pointer[0] = &(pRGBBuffer[cinfo.next_scanline * row_stride]);  
+        jpeg_write_scanlines(&cinfo, row_pointer, 1);  
+    }  
+  
+    jpeg_finish_compress(&cinfo);  
+    jpeg_destroy_compress(&cinfo);  
+  
+    fclose(fp);  
+}  
+
 
 void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame) {
 	FILE *pFile;
@@ -206,7 +257,8 @@ EMSCRIPTEN_KEEPALIVE int seekseek( char *fileName, double timestamp) {
 		// Free the packet that was allocated by av_read_frame.
 		//av_free_packet(&packet); // Deprecated.
 	}
-	SaveFrame(pFrameRGB, pCodecCtx->width, pCodecCtx->height, ++i);
+	// SaveFrame(pFrameRGB, pCodecCtx->width, pCodecCtx->height, ++i);
+	saveFrame_jpg(pFrameRGB->data[0], i, pCodecCtx->width, pCodecCtx->height);  
 	av_packet_unref(&packet);
 
 
